@@ -209,6 +209,30 @@ def edit_site(site_id):
                            form=dict(site), categories=CATEGORIES)
 
 
+@app.route('/sites/<int:site_id>/duplicate', methods=['POST'])
+def duplicate_site(site_id):
+    conn = get_db()
+    site = conn.execute('SELECT * FROM sites WHERE id=?', (site_id,)).fetchone()
+    if site:
+        conn.execute(
+            '''INSERT INTO sites (name, url, category, points, expiry_date, login_id, notes)
+               VALUES (?,?,?,?,?,?,?)''',
+            (
+                site['name'] + ' (コピー)',
+                site['url'],
+                site['category'],
+                site['points'],
+                site['expiry_date'],
+                site['login_id'],
+                site['notes'],
+            )
+        )
+        conn.commit()
+        flash(f'「{site["name"]}」をコピーしました。', 'success')
+    conn.close()
+    return redirect(url_for('site_list'))
+
+
 @app.route('/sites/<int:site_id>/delete', methods=['POST'])
 def delete_site(site_id):
     conn = get_db()
