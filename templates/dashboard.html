@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+{% block title %}ダッシュボード — ポイント・マイル管理{% endblock %}
+
+{% block content %}
+
+<!-- ── サマリーカード ── -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="card stat-card p-3">
+      <div class="text-muted small">登録数</div>
+      <div class="stat-num">{{ total }}</div>
+      <div class="text-muted small">サイト</div>
+    </div>
+  </div>
+  {% for key, label in categories.items() %}
+  <div class="col-6 col-md-3">
+    <div class="card p-3" style="border-left:4px solid
+      {% if key=='point_site' %}#6366f1
+      {% elif key=='mile' %}#0ea5e9
+      {% else %}#10b981{% endif %}">
+      <div class="text-muted small">{{ label }}</div>
+      <div class="stat-num" style="color:
+        {% if key=='point_site' %}#6366f1
+        {% elif key=='mile' %}#0ea5e9
+        {% else %}#10b981{% endif %}">
+        {{ cat_counts[key] }}
+      </div>
+      <div class="text-muted small">件</div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- ── 期限警告 ── -->
+<div class="card mb-4">
+  <div class="card-header d-flex align-items-center gap-2
+    {% if warnings %}bg-danger text-white{% else %}bg-light{% endif %}">
+    <i class="bi bi-exclamation-triangle-fill"></i>
+    <span>有効期限アラート（60日以内）</span>
+    {% if warnings %}
+      <span class="badge bg-white text-danger ms-auto">{{ warnings|length }} 件</span>
+    {% endif %}
+  </div>
+  <div class="card-body p-0">
+    {% if warnings %}
+    <div class="table-responsive">
+      <table class="table table-hover table-sm align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>サービス名</th>
+            <th class="hide-sm">カテゴリ</th>
+            <th>ポイント</th>
+            <th>有効期限</th>
+            <th>残り日数</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for w in warnings %}
+          <tr class="row-{{ w.status }}">
+            <td>
+              <strong>{{ w.name }}</strong>
+              {% if w.url %}
+              <a href="{{ w.url }}" target="_blank" class="ms-1 text-muted" title="サイトを開く">
+                <i class="bi bi-box-arrow-up-right"></i>
+              </a>
+              {% endif %}
+            </td>
+            <td class="hide-sm">
+              <span class="badge badge-{{ w.category }} text-white rounded-pill px-2">
+                {{ w.category_label }}
+              </span>
+            </td>
+            <td><span class="points-badge text-primary">{{ "{:,}".format(w.points) }}</span></td>
+            <td>{{ w.expiry_date }}</td>
+            <td>
+              {% if w.days_left < 0 %}
+                <span class="badge bg-danger">期限切れ</span>
+              {% elif w.days_left <= 30 %}
+                <span class="badge bg-danger">残り {{ w.days_left }}日</span>
+              {% else %}
+                <span class="badge bg-warning text-dark">残り {{ w.days_left }}日</span>
+              {% endif %}
+            </td>
+            <td>
+              <a href="{{ url_for('edit_site', site_id=w.id) }}"
+                 class="btn btn-sm btn-outline-secondary py-0">
+                <i class="bi bi-pencil"></i>
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="text-center text-muted py-5">
+      <i class="bi bi-check-circle-fill text-success fs-2"></i>
+      <p class="mt-2">60日以内に期限が来るサイトはありません。</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- ── 全サイト一覧（クイックリンク） ── -->
+<div class="card">
+  <div class="card-header bg-light d-flex justify-content-between align-items-center">
+    <span><i class="bi bi-link-45deg me-1"></i>クイックリンク</span>
+    <a href="{{ url_for('add_site') }}" class="btn btn-sm btn-primary px-3">
+      <i class="bi bi-plus-lg"></i> 追加
+    </a>
+  </div>
+  <div class="card-body">
+    {% if all_sites %}
+      {% set ns = namespace(current_cat='') %}
+      {% for s in all_sites|sort(attribute='category') %}
+        {% if s.category != ns.current_cat %}
+          {% if ns.current_cat != '' %}</div>{% endif %}
+          {% set ns.current_cat = s.category %}
+          <h6 class="text-muted text-uppercase small mb-2 mt-3">
+            {{ s.category_label }}
+          </h6>
+          <div class="d-flex flex-wrap gap-2">
+        {% endif %}
+
+        {% if s.url %}
+        <a href="{{ s.url }}" target="_blank"
+           class="btn btn-sm btn-outline-primary rounded-pill px-3
+             {% if s.status in ('expired','danger') %}border-danger text-danger
+             {% elif s.status == 'warning' %}border-warning text-warning{% endif %}"
+           title="{{ s.points|int|string + 'pt / ' + (s.expiry_date or '期限なし') }}">
+          {{ s.name }}
+          {% if s.status == 'expired' %}<i class="bi bi-x-circle-fill ms-1"></i>
+          {% elif s.status == 'danger' %}<i class="bi bi-exclamation-circle-fill ms-1"></i>
+          {% elif s.status == 'warning' %}<i class="bi bi-clock-fill ms-1"></i>
+          {% endif %}
+        </a>
+        {% else %}
+        <span class="btn btn-sm btn-outline-secondary rounded-pill px-3 disabled">{{ s.name }}</span>
+        {% endif %}
+
+        {% if loop.last %}</div>{% endif %}
+      {% endfor %}
+    {% else %}
+      <p class="text-muted text-center py-3">まだサイトが登録されていません。</p>
+    {% endif %}
+  </div>
+</div>
+
+{% endblock %}

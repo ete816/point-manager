@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% block title %}{% if action=='add' %}新規登録{% else %}編集{% endif %} — ポイント・マイル管理{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+  <div class="col-12 col-md-7 col-lg-6">
+
+    <div class="card">
+      <div class="card-header bg-light">
+        <h5 class="mb-0 fw-bold">
+          {% if action == 'add' %}
+            <i class="bi bi-plus-circle me-1"></i>新規サイト登録
+          {% else %}
+            <i class="bi bi-pencil-square me-1"></i>サイト編集
+          {% endif %}
+        </h5>
+      </div>
+      <div class="card-body">
+
+        <form method="post">
+
+          <!-- サービス名 -->
+          <div class="mb-3">
+            <label class="form-label fw-semibold">
+              サービス名 <span class="text-danger">*</span>
+            </label>
+            <input type="text" name="name" class="form-control"
+                   placeholder="例：楽天ポイント"
+                   value="{{ form.get('name', '') }}" required>
+          </div>
+
+          <!-- URL -->
+          <div class="mb-3">
+            <label class="form-label fw-semibold">
+              サイトURL
+              <span class="text-muted fw-normal small">（ワンクリックで開くリンク）</span>
+            </label>
+            <input type="url" name="url" class="form-control"
+                   placeholder="https://example.com"
+                   value="{{ form.get('url', '') }}">
+          </div>
+
+          <!-- カテゴリ -->
+          <div class="mb-3">
+            <label class="form-label fw-semibold">カテゴリ <span class="text-danger">*</span></label>
+            <div class="d-flex flex-wrap gap-2 mt-1">
+              {% for key, label in categories.items() %}
+              <div class="form-check form-check-inline m-0">
+                <input class="form-check-input" type="radio"
+                       name="category" id="cat_{{ key }}" value="{{ key }}"
+                       {% if form.get('category', 'point_site') == key %}checked{% endif %}>
+                <label class="form-check-label badge text-white px-3 py-2 rounded-pill"
+                       style="cursor:pointer;background:
+                         {% if key=='point_site' %}#6366f1
+                         {% elif key=='mile' %}#0ea5e9
+                         {% else %}#10b981{% endif %}"
+                       for="cat_{{ key }}">{{ label }}</label>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <!-- ポイント数 -->
+          <div class="mb-3">
+            <label class="form-label fw-semibold">ポイント数</label>
+            <div class="input-group">
+              <input type="number" name="points" class="form-control"
+                     placeholder="0" min="0"
+                     value="{{ form.get('points', 0) }}">
+              <span class="input-group-text">pt</span>
+            </div>
+          </div>
+
+          <!-- 有効期限 -->
+          <div class="mb-3">
+            <label class="form-label fw-semibold">
+              有効期限
+              <span class="text-muted fw-normal small">（60日以内でアラート表示）</span>
+            </label>
+            <input type="date" name="expiry_date" class="form-control"
+                   value="{{ form.get('expiry_date', '') }}">
+          </div>
+
+          <!-- ログインID -->
+          <div class="mb-3">
+            <label class="form-label fw-semibold">
+              <i class="bi bi-person-circle me-1 text-secondary"></i>ログインID
+              <span class="text-muted fw-normal small">（メールアドレス・ユーザー名など）</span>
+            </label>
+            <div class="input-group">
+              <span class="input-group-text bg-light"><i class="bi bi-person"></i></span>
+              <input type="text" name="login_id" class="form-control"
+                     placeholder="例：example@email.com"
+                     autocomplete="off"
+                     value="{{ form.get('login_id', '') }}">
+            </div>
+            <div class="form-text text-muted">
+              <i class="bi bi-shield-check text-success"></i>
+              IDのみ保存します。パスワードは保存しません。
+            </div>
+          </div>
+
+          <!-- メモ -->
+          <div class="mb-4">
+            <label class="form-label fw-semibold">メモ</label>
+            <textarea name="notes" class="form-control" rows="2"
+                      placeholder="備考など">{{ form.get('notes', '') }}</textarea>
+          </div>
+
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary flex-fill">
+              <i class="bi bi-check-lg me-1"></i>
+              {% if action == 'add' %}登録する{% else %}更新する{% endif %}
+            </button>
+            <a href="{{ url_for('site_list') }}" class="btn btn-outline-secondary px-4">
+              キャンセル
+            </a>
+          </div>
+
+        </form>
+      </div>
+    </div>
+
+    {% if action == 'edit' and site %}
+    <div class="text-center mt-3">
+      <form method="post" action="{{ url_for('delete_site', site_id=site.id) }}"
+            onsubmit="return confirm('「{{ site.name }}」を削除しますか？')">
+        <button type="submit" class="btn btn-sm btn-link text-danger">
+          <i class="bi bi-trash me-1"></i>このサイトを削除する
+        </button>
+      </form>
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+
+{% endblock %}
