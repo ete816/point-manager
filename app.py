@@ -11,9 +11,11 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATABASE = os.path.join(BASE_DIR, 'points.db')
 
 CATEGORIES = {
-    'point_site': 'ポイントサイト',
-    'mile':       'マイル',
+    'point_site':  'ポイントサイト',
+    'mile':        'マイル',
     'credit_card': 'クレカ',
+    'shopping':    'ショッピング',
+    'travel':      '旅行',
 }
 
 

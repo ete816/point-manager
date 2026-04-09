@@ -13,18 +13,16 @@
     </div>
   </div>
   {% for key, label in categories.items() %}
+  {% set color =
+    '#6366f1' if key=='point_site' else
+    '#0ea5e9' if key=='mile' else
+    '#10b981' if key=='credit_card' else
+    '#f59e0b' if key=='shopping' else
+    '#ec4899' %}
   <div class="col-6 col-md-3">
-    <div class="card p-3" style="border-left:4px solid
-      {% if key=='point_site' %}#6366f1
-      {% elif key=='mile' %}#0ea5e9
-      {% else %}#10b981{% endif %}">
+    <div class="card p-3" style="border-left:4px solid {{ color }}">
       <div class="text-muted small">{{ label }}</div>
-      <div class="stat-num" style="color:
-        {% if key=='point_site' %}#6366f1
-        {% elif key=='mile' %}#0ea5e9
-        {% else %}#10b981{% endif %}">
-        {{ cat_counts[key] }}
-      </div>
+      <div class="stat-num" style="color:{{ color }}">{{ cat_counts[key] }}</div>
       <div class="text-muted small">件</div>
     </div>
   </div>
